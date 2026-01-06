@@ -1,6 +1,6 @@
-# Merkled - Digital Evidence Sealer 🔒
+# Merkled - Digital File Preservation Tool 🔒
 
-A Chrome/Edge extension for file preservation using Merkle Tree cryptographic hashing.
+A Chrome extension for file preservation using Merkle Tree cryptographic hashing.
 
 ## Quick Start
 
@@ -49,10 +49,6 @@ frontend/
 ├── public/              # Extension manifest & icons
 └── dist/                # Built extension (load this in Chrome)
 ```
-
-## Tech Stack
-
-React 18 • TypeScript • Vite • Tailwind CSS • Web Crypto API • merkletreejs
 
 ---
 
