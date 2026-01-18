@@ -10,26 +10,41 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { Shield } from "lucide-react";
+import { login } from "../../utils/api";
 
 interface LoginPageProps {
-  onLogin: () => void;
+  onLogin: (token: string, user: any) => void;
 }
 
 export function LoginPage({ onLogin }: LoginPageProps) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
 
-    // Mock authentication - in production, this would call a real API
-    if (username && password) {
-      // For demo: accept any non-empty credentials
-      onLogin();
-    } else {
-      setError("Please enter both username and password");
+    try {
+      if (!email || !password) {
+        setError("Please enter both email and password");
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await login(email, password);
+      
+      // Store token in localStorage
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      
+      onLogin(response.token, response.user);
+    } catch (err: any) {
+      setError(err.message || "Login failed. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -52,16 +67,17 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="space-y-1.5">
-              <Label htmlFor="username" className="text-xs">
-                Username
+              <Label htmlFor="email" className="text-xs">
+                Email
               </Label>
               <Input
-                id="username"
-                type="text"
-                placeholder="Enter username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                type="email"
+                placeholder="admin@merkled.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="h-8 text-xs"
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-1.5">
@@ -75,6 +91,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="h-8 text-xs"
+                disabled={isLoading}
               />
             </div>
             {error && (
@@ -83,11 +100,12 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             <Button
               type="submit"
               className="w-full h-8 text-xs"
+              disabled={isLoading}
             >
-              Sign In
+              {isLoading ? "Signing in..." : "Sign In"}
             </Button>
             <p className="text-[10px] text-center text-gray-500 mt-2">
-              Demo: Enter any credentials
+              Default: admin@merkled.com / admin123
             </p>
           </form>
         </CardContent>

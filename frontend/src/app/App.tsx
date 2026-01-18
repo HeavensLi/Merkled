@@ -51,13 +51,16 @@ export default function App() {
   }, [fileRecords]);
 
 
-  const handleLogin = () => {
+  const handleLogin = (token: string, user: any) => {
     setIsAuthenticated(true);
+    // Token and user are already saved in localStorage by the login function
   };
 
 
   const handleLogout = () => {
     setIsAuthenticated(false);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   };
 
 

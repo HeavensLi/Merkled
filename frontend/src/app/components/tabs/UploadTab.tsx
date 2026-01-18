@@ -16,8 +16,7 @@ import { Progress } from "../ui/progress";
 import { toast } from "sonner";
 import {
   processFiles,
-  buildMerkleTree,
-  getMerkleRoot,
+  generateMerkleRoot as calculateMerkleRoot,
   createManifest,
   exportManifestJSON,
   exportManifestPDF,
@@ -95,10 +94,9 @@ export function UploadTab({ onSaveFile }: UploadTabProps) {
       setProgress(20);
       const fileHashes = await processFiles(fileList);
       
-      // merkel tree buidling
+      // Generate merkle root
       setProgress(60);
-      const tree = buildMerkleTree(fileHashes);
-      const root = getMerkleRoot(tree);
+      const root = calculateMerkleRoot(fileHashes);
       
       // manifest/cert document
       setProgress(80);

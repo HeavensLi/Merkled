@@ -108,11 +108,51 @@ export async function processFiles(files: FileList | File[]): Promise<FileHash[]
 }
 
 /**
- * Build a Merkle Tree from file hashes
+ * Generate SHA-256 hash from concatenated strings
+ */
+function sha256Hash(data: string): string {
+  return SHA256(data).toString();
+}
+
+/**
+ * Generate Merkle root from file hashes using the same algorithm as backend
  * A Merkle Tree is like a pyramid of hashes:
  * - Bottom level: individual file hashes
  * - Each level up: combines two hashes together
  * - Top (root): single hash representing all files
+ */
+export function generateMerkleRoot(fileHashes: FileHash[]): string {
+  // Make sure we have files to work with
+  if (!fileHashes || fileHashes.length === 0) {
+    throw new Error('Cannot generate Merkle Root: no file hashes provided');
+  }
+
+  console.log(`Generating Merkle Root with ${fileHashes.length} leaves... - merkleUtils.ts:123`);
+  
+  // Get just the hash strings from each file
+  let leaves = fileHashes.map((fileHash) => fileHash.hash);
+  
+  // Build the tree from bottom up
+  while (leaves.length > 1) {
+    const nextLevel: string[] = [];
+    
+    for (let i = 0; i < leaves.length; i += 2) {
+      const left = leaves[i];
+      const right = leaves[i + 1] || left; // If odd number, pair last with itself
+      const combinedHash = sha256Hash(left + right);
+      nextLevel.push(combinedHash);
+    }
+    
+    leaves = nextLevel;
+  }
+  
+  const root = leaves[0];
+  console.log('Merkle Root generated successfully - merkleUtils.ts:142', root);
+  return root;
+}
+
+/**
+ * Build a Merkle Tree from file hashes (for backward compatibility)
  */
 export function buildMerkleTree(fileHashes: FileHash[]): MerkleTree {
   // Make sure we have files to work with
@@ -120,7 +160,7 @@ export function buildMerkleTree(fileHashes: FileHash[]): MerkleTree {
     throw new Error('Cannot build Merkle Tree: no file hashes provided');
   }
 
-  console.log(`Building Merkle Tree with ${fileHashes.length} leaves... - merkleUtils.ts:123`);
+  console.log(`Building Merkle Tree with ${fileHashes.length} leaves... - merkleUtils.ts:156`);
   
   // Get just the hash strings from each file
   const leaves = fileHashes.map((fileHash) => fileHash.hash);
@@ -133,13 +173,12 @@ export function buildMerkleTree(fileHashes: FileHash[]): MerkleTree {
     hashLeaves: false
   });
   
-  console.log('Merkle Tree built successfully - merkleUtils.ts:136');
+  console.log('Merkle Tree built successfully - merkleUtils.ts:168');
   return tree;
 }
 
 /**
  * Get the Merkle Root (top hash) from the tree
- * This single hash represents all files in the folder
  */
 export function getMerkleRoot(tree: MerkleTree): string {
   try {
@@ -152,11 +191,11 @@ export function getMerkleRoot(tree: MerkleTree): string {
     
     // Convert root to string and return
     const rootString = root.toString('hex');
-    console.log('Merkle Root: - merkleUtils.ts:155', rootString);
+    console.log('Merkle Root: - merkleUtils.ts:182', rootString);
     return rootString;
     
   } catch (error) {
-    console.error('Error getting Merkle Root: - merkleUtils.ts:159', error);
+    console.error('Error getting Merkle Root: - merkleUtils.ts:186', error);
     throw new Error('Failed to get Merkle Root from tree');
   }
 }
